@@ -650,12 +650,12 @@
 
             // === 1. SUPABASE CLIENT INITIALIZATION ===
             // Replace these with your actual Supabase project URL and anon key
-            const SUPABASE_URL = 'YOUR_SUPABASE_URL';
-            const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+            const SUPABASE_URL = 'https://tuucgqbyegerndyviefw.supabase.co';
+            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1dWNncWJ5ZWdlcm5keXZpZWZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE1NTc1NTksImV4cCI6MjA3NzEzMzU1OX0.fImUoHr86_5MdkDEWu8JXhjSaG2oxbq0IoGhZ6XeH-0';
             
             let supabase;
             try {
-                if (SUPABASE_URL !== 'YOUR_SUPABASE_URL' && SUPABASE_ANON_KEY !== 'YOUR_SUPABASE_ANON_KEY') {
+                if (SUPABASE_URL !== 'https://tuucgqbyegerndyviefw.supabase.co' && SUPABASE_ANON_KEY !== 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1dWNncWJ5ZWdlcm5keXZpZWZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE1NTc1NTksImV4cCI6MjA3NzEzMzU1OX0.fImUoHr86_5MdkDEWu8JXhjSaG2oxbq0IoGhZ6XeH-0') {
                      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
                 } else {
                     console.warn('Supabase keys not provided. Using mock data.');
@@ -666,7 +666,7 @@
 
             // --- MOCK DATA FOR DEMO ---
             // Set this to 'false' once your Supabase project is set up
-            const USE_MOCK_DATA = true;
+            const USE_MOCK_DATA = false;
             
             const MOCK_DATA = [
                 {
@@ -910,3 +910,4 @@
     </script>
 </body>
 </html>
+
