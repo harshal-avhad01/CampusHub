@@ -630,7 +630,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }])
                 .select(`
                     *,
-                    user:users ( user_name, user_avatar )
+                    user:users ( user_name)
                 `)
                 .single(); // Get the new row back with user data
 
@@ -676,3 +676,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
