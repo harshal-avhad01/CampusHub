@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>CampusHub – Q&A</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root { --primary:#5E35B1; --primary-grad:linear-gradient(135deg,#7E57C2,#5E35B1); --bg1:#f3e9fb; --bg2:#ede7f6; --card:#fff; --text:#333; --text-light:#555; --border:#e0e0e0; }
+    body.dark { --bg1:#1b132d; --bg2:#2a1f47; --card:#2a1f47; --text:#f3e9fb; --text-light:#d1c4e9; --border:#4a3a6b; }
+    body{font-family:'Poppins',sans-serif;background:linear-gradient(120deg,var(--bg1),var(--bg2));color:var(--text);margin:0;padding-top:70px;transition:0.4s;}
+    
+    header{height:70px;background:var(--primary-grad);color:#fff;display:flex;justify-content:space-between;align-items:center;padding:0 28px;position:fixed;top:0;width:100%;z-index:100;box-shadow:0 4px 20px rgba(0,0,0,0.2);}
+    .nav-logo{font-size:1.5rem;font-weight:700;color:#fff;text-decoration:none;display:flex;align-items:center;gap:10px;}
+    .nav-menu{display:flex;gap:15px;}
+    .nav-link{text-decoration:none;color:#fff;opacity:0.9;padding:10px;transition:0.3s;}
+    .nav-link:hover,.nav-link.active{opacity:1;border-bottom:3px solid #fff;}
+    .nav-user{display:flex;align-items:center;gap:15px;}
+    .user-pic{width:40px;height:40px;border-radius:50%;border:2px solid rgba(255,255,255,0.8);cursor:pointer;object-fit:cover;}
+    .cta-btn{background:rgba(255,255,255,0.2);color:#fff;border:1px solid rgba(255,255,255,0.5);padding:8px 18px;border-radius:50px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;transition:0.3s;}
+    .cta-btn:hover{background:rgba(255,255,255,0.3);transform:translateY(-2px);}
+
+    main{max-width:900px;margin:30px auto;padding:0 20px;}
+    h2{color:var(--primary);display:flex;align-items:center;gap:10px;margin-bottom:20px;}
+    body.dark h2{color:#7E57C2;}
+    
+    .filters{display:flex;gap:10px;margin-bottom:25px;flex-wrap:wrap;}
+    .filter-btn{background:var(--card);border:1px solid var(--border);padding:8px 16px;border-radius:20px;cursor:pointer;font-weight:500;color:var(--text-light);transition:0.2s;}
+    .filter-btn:hover,.filter-btn.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+
+    .q-card{background:var(--card);border-radius:16px;padding:24px;margin-bottom:20px;box-shadow:0 4px 15px rgba(0,0,0,0.05);border:1px solid var(--border);position:relative;}
+    .q-header{display:flex;align-items:center;gap:12px;margin-bottom:15px;padding-right:130px;}
+    .q-header img{width:45px;height:45px;border-radius:50%;object-fit:cover;border:2px solid var(--bg1);}
+    .q-meta{display:flex;flex-direction:column;}
+    .q-meta strong{color:var(--primary);font-size:1.05rem;}
+    body.dark .q-meta strong{color:#9FA8DA;}
+    .q-date{font-size:0.85rem;color:var(--text-light);}
+    .cat-pill{display:inline-block;font-size:0.75rem;padding:4px 10px;border-radius:12px;background:var(--bg2);color:var(--primary);font-weight:600;margin-left:10px;text-transform:uppercase;}
+
+    .card-actions{position:absolute;top:20px;right:20px;display:flex;gap:8px;}
+    .act-btn{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:var(--bg1);color:var(--text-light);cursor:pointer;display:grid;place-items:center;transition:0.2s;font-size:15px;}
+    .act-btn:hover{transform:scale(1.1);}
+    .copy-btn{color:var(--primary);border-color:var(--primary);background:#fff;}
+    .share-btn{color:#007bff;border-color:#007bff;background:#fff;}
+    .del-btn{color:#d9534f;border-color:#d9534f;background:#fff;}
+
+    .vote-area{display:flex;gap:15px;margin-top:20px;}
+    .vote-btn{background:var(--bg1);border:1px solid var(--border);padding:6px 14px;border-radius:8px;font-weight:600;color:var(--text);cursor:pointer;display:flex;align-items:center;gap:6px;transition:0.2s;}
+    .vote-btn:hover,.vote-btn.voted{background:var(--primary);color:#fff;border-color:var(--primary);}
+
+    .answers{margin-top:20px;padding-top:20px;border-top:1px solid var(--border);}
+    .ans{padding:15px 0;border-bottom:1px solid var(--border);}
+    .ans:last-child{border-bottom:none;}
+    .ans-header{display:flex;justify-content:space-between;font-size:0.9rem;margin-bottom:8px;}
+    .ans-user{font-weight:600;color:var(--primary);}
+    body.dark .ans-user{color:#9FA8DA;}
+    .ans-vote{cursor:pointer;font-size:0.85rem;display:flex;align-items:center;gap:5px;color:var(--text-light);padding:4px 8px;border-radius:4px;transition:0.2s;}
+    .ans-vote:hover,.ans-vote.voted{color:var(--primary);background:var(--bg2);}
+
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);display:none;place-items:center;z-index:1000;}
+    .modal-overlay.active{display:grid;}
+    .modal{background:var(--card);padding:30px;border-radius:20px;width:90%;max-width:500px;position:relative;box-shadow:0 20px 50px rgba(0,0,0,0.3);}
+    .close-modal{position:absolute;right:25px;top:25px;font-size:1.5rem;cursor:pointer;color:var(--text-light);}
+    h3{margin-top:0;color:var(--primary);}
+    body.dark h3{color:#9FA8DA;}
+    .form-group{margin-bottom:15px;}
+    label{display:block;margin-bottom:8px;font-weight:600;font-size:0.95rem;}
+    input,select,textarea{width:100%;padding:12px;border-radius:10px;border:1px solid var(--border);background:var(--bg1);color:var(--text);font-family:inherit;box-sizing:border-box;}
+    input:focus,select:focus,textarea:focus{outline:none;border-color:var(--primary);background:var(--card);box-shadow:0 0 0 4px rgba(94,53,177,0.1);}
+    .submit-btn{background:var(--primary-grad);color:#fff;width:100%;padding:12px;border:none;border-radius:50px;font-weight:600;font-size:1rem;cursor:pointer;}
+  </style>
+</head>
+<body>
+
+  
+  <header>
+    <a href="campushub.html" class="nav-logo"><i class="fa-solid fa-graduation-cap"></i> CampusHub</a>
+    <nav class="nav-menu" id="nav-menu-links">
+      <a href="campushub.html" class="nav-link">Home</a>
+      <a href="CampusLostdyanmic.html" class="nav-link">Lost & Found</a>
+      <a href="Teamup.html" class="nav-link">Team Up</a>
+      <a href="event.html" class="nav-link">Events</a>
+      <a href="qa_with_answers_share_answer.html" class="nav-link active">Q&A</a>
+      <a href="contact.html" class="nav-link">Contact</a>
+    </nav>
+    <div class="nav-user">
+      <button id="ask-btn" class="cta-btn"><i class="fas fa-plus"></i> Ask</button>
+      <button id="themeToggle" style="background:none;border:none;color:#fff;font-size:1.2rem;cursor:pointer;"><i class="fas fa-moon"></i></button>
+      <a href="CampusprofileDynamic.html"><img id="user-pic" class="user-pic" src="https://placehold.co/40/5E35B1/fff?text=U"></a>
+      <button id="logout-btn" style="background:none;border:none;color:#fff;font-size:1rem;cursor:pointer;"><i class="fa-solid fa-right-from-bracket"></i></button>
+    </div>
+  </header>
+
+  <main>
+    <h2><i class="fas fa-comments"></i> Campus Forum</h2>
+    <div class="filters">
+        <button class="filter-btn active" data-cat="all">All Topics</button>
+        <button class="filter-btn" data-cat="General">General</button>
+        <button class="filter-btn" data-cat="Academic">Academic</button>
+        <button class="filter-btn" data-cat="Campus">Campus Life</button>
+        <button class="filter-btn" data-cat="Career">Career</button>
+        <button class="filter-btn" data-cat="Social">Social</button>
+    </div>
+    <div id="qa-feed">
+        <p id="loader" style="text-align:center;margin-top:50px;color:var(--text-light);">Loading...</p>
+    </div>
+  </main>
+
+  <div id="ask-modal" class="modal-overlay"><div class="modal">
+    <span class="close-modal">&times;</span>
+    <h3>Ask Question</h3>
+    <form id="ask-form">
+        <div class="form-group"><label>Category</label>
+            <select id="q-cat" required>
+                <option value="General">General</option><option value="Academic">Academic</option>
+                <option value="Campus">Campus Life</option><option value="Career">Career</option><option value="Social">Social</option>
+            </select>
+        </div>
+        <div class="form-group"><label>Title</label><input id="q-title" required placeholder="Short summary..."></div>
+        <div class="form-group"><label>Details</label><textarea id="q-details" rows="4" required placeholder="Full question..."></textarea></div>
+        <button type="submit" id="post-q-btn" class="submit-btn">Post Question</button>
+    </form>
+  </div></div>
+
+  <div id="ans-modal" class="modal-overlay"><div class="modal">
+    <span class="close-modal">&times;</span>
+    <h3>Your Answer</h3>
+    <form id="ans-form">
+        <div class="form-group"><textarea id="ans-text" rows="5" required placeholder="Type helpful answer..."></textarea></div>
+        <button type="submit" id="post-a-btn" class="submit-btn">Submit Answer</button>
+    </form>
+  </div></div>
+
+  <script>
+    const SUPABASE_URL = 'https://tuucgqbyegerndyviefw.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1dWNncWJ5ZWdlcm5keXZpZWZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE1NTc1NTksImV4cCI6MjA3NzEzMzU1OX0.fImUoHr86_5MdkDEWu8JXhjSaG2oxbq0IoGhZ6XeH-0';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    
+    let currentUser=null, currentQId=null, allQuestions=[], allAnswers=[], currentFilter='all';
+    let votedItems = JSON.parse(localStorage.getItem('votedItems') || '[]');
+
+    async function init() {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return window.location.href = 'index.html';
+        currentUser = session.user;
+        document.getElementById('user-pic').src = currentUser.user_metadata.profile_image || `https://placehold.co/40/5E35B1/fff?text=${(currentUser.user_metadata.fullname||'U')[0]}`;
+        loadData();
+    }
+
+    async function loadData() {
+        const loader = document.getElementById('loader'); if(loader) loader.style.display = 'block';
+        const [qs, ans] = await Promise.all([
+            supabase.from('questions').select('*, users(user_name,user_avatar,email)').order('created_at',{ascending:false}),
+            supabase.from('answers').select('*, users(user_name,email)').order('likes',{ascending:false})
+        ]);
+        if(qs.data) allQuestions = qs.data;
+        if(ans.data) allAnswers = ans.data;
+        if(loader) loader.style.display = 'none';
+        renderFeed();
+    }
+
+    function renderFeed() {
+        const feed = document.getElementById('qa-feed'); feed.innerHTML = '';
+        const filtered = currentFilter === 'all' ? allQuestions : allQuestions.filter(q => q.category === currentFilter);
+        if(!filtered.length) { feed.innerHTML = '<p style="text-align:center;opacity:0.7;margin-top:40px;">No questions in this category.</p>'; return; }
+        filtered.forEach(q => feed.appendChild(createCard(q, allAnswers.filter(a => a.q_id === q.q_id))));
+    }
+
+    function getUser(obj) {
+        let u = obj; if(Array.isArray(u)) u = u[0];
+        return { name: u?.user_name || u?.email?.split('@')[0] || 'Anonymous', avatar: u?.user_avatar };
+    }
+
+    function createCard(q, answers) {
+        const u = getUser(q.users);
+        const isOwner = currentUser.id === q.user_id;
+        const isVoted = votedItems.includes('q_'+q.q_id);
+        const shareText = `❓ *CampusHub Question*\n\n**${q.title}**\n${q.content}`;
+
+        const card = document.createElement('div');
+        card.className = 'q-card';
+        card.innerHTML = `
+            <div class="card-actions">
+                <button class="act-btn copy-btn" onclick="copyLink('${q.q_id}')"><i class="fas fa-link"></i></button>
+                <button class="act-btn share-btn" onclick="shareItem('${q.title}','${q.content}')"><i class="fas fa-share-nodes"></i></button>
+                ${isOwner ? `<button class="act-btn del-btn" onclick="deleteItem('questions','q_id','${q.q_id}')"><i class="fas fa-trash"></i></button>` : ''}
+            </div>
+            <div class="q-header">
+                <img src="${u.avatar || `https://placehold.co/45/ccc/fff?text=${u.name[0]}`}" alt="${u.name}">
+                <div class="q-meta">
+                    <div><strong>${u.name}</strong><span class="cat-pill">${q.category||'General'}</span></div>
+                    <span class="q-date">${new Date(q.created_at).toLocaleDateString()}</span>
+                </div>
+            </div>
+            <h3 style="margin-top:0;">${q.title}</h3>
+            <p style="color:var(--text-light);line-height:1.6;">${q.content}</p>
+            <div class="vote-area">
+                <button class="vote-btn ${isVoted?'voted':''}" data-likes="${q.likes||0}" onclick="vote(this, 'questions','q_id','${q.q_id}','q_${q.q_id}')">
+                    <i class="fas fa-thumbs-up"></i> <span>Upvote (${q.likes||0})</span>
+                </button>
+                <button class="vote-btn" onclick="openAns('${q.q_id}')">
+                    <i class="fas fa-comment-alt"></i> ${answers.length} Answers
+                </button>
+            </div>
+            <div class="answers">
+                ${answers.map(a => {
+                    const au = getUser(a.users);
+                    const aVoted = votedItems.includes('a_'+a.answer_id);
+                    return `
+                    <div class="ans">
+                        <div class="ans-header">
+                            <span class="ans-user">${au.name}</span>
+                            ${currentUser.id===a.user_id ? `<span class="ans-del" style="color:#d9534f;cursor:pointer;font-size:0.85rem;" onclick="deleteItem('answers','answer_id','${a.answer_id}')">Delete</span>` : ''}
+                        </div>
+                        <div style="margin-bottom:8px;">${a.answer_text}</div>
+                        <div style="display:flex;gap:15px;align-items:center;">
+                            <span class="ans-vote ${aVoted?'voted':''}" data-likes="${a.likes||0}" onclick="vote(this, 'answers','answer_id','${a.answer_id}','a_${a.answer_id}')">
+                                <i class="fas fa-arrow-up"></i> Helpful (${a.likes||0})
+                            </span>
+                            <span style="font-size:0.8rem;color:var(--text-light)">${new Date(a.created_at).toLocaleDateString()}</span>
+                        </div>
+                    </div>`;
+                }).join('')}
+            </div>
+        `;
+        return card;
+    }
+
+    // === INSTANT VOTING ===
+    async function vote(btn, table, idCol, id, key) {
+        const isVoted = votedItems.includes(key);
+        let currentLikes = parseInt(btn.dataset.likes);
+        // Instant UI update
+        const newLikes = isVoted ? Math.max(0, currentLikes - 1) : currentLikes + 1;
+        btn.dataset.likes = newLikes;
+        btn.classList.toggle('voted');
+        
+        // Update text based on button type
+        if(btn.classList.contains('vote-btn')) {
+             btn.querySelector('span').textContent = `Upvote (${newLikes})`;
+        } else {
+             btn.innerHTML = `<i class="fas fa-arrow-up"></i> Helpful (${newLikes})`;
+        }
+
+        // Update local storage
+        if(isVoted) votedItems = votedItems.filter(k=>k!==key); else votedItems.push(key);
+        localStorage.setItem('votedItems', JSON.stringify(votedItems));
+
+        // Background DB update
+        await supabase.from(table).update({likes:newLikes}).eq(idCol, id);
+    }
+
+    async function deleteItem(table, idCol, id) {
+        if(confirm('Delete permanently?')) { await supabase.from(table).delete().eq(idCol, id); loadData(); }
+    }
+
+    // Events
+    document.querySelectorAll('.filter-btn').forEach(btn => btn.onclick = () => {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active'); currentFilter = btn.dataset.cat; renderFeed();
+    });
+    const askM = document.getElementById('ask-modal'), ansM = document.getElementById('ans-modal');
+    window.openAns = (id) => { currentQId=id; ansM.classList.add('active'); }
+    document.getElementById('ask-btn').onclick = () => askM.classList.add('active');
+    document.querySelectorAll('.close-modal').forEach(b => b.onclick = () => { askM.classList.remove('active'); ansM.classList.remove('active'); });
+    window.copyLink = (id) => { navigator.clipboard.writeText(window.location.href.split('?')[0]+'?id='+id); alert('Link copied!'); }
+    window.shareItem = (t,c) => { if(navigator.share) navigator.share({title:t,text:c}); else copyLink(''); }
+
+    document.getElementById('ask-form').onsubmit = async (e) => {
+        e.preventDefault();
+        const btn=document.getElementById('post-q-btn'); btn.disabled=true; btn.textContent='Posting...';
+        await supabase.from('questions').insert({ user_id: currentUser.id, category: document.getElementById('q-cat').value, title: document.getElementById('q-title').value, content: document.getElementById('q-details').value });
+        askM.classList.remove('active'); e.target.reset(); loadData(); btn.disabled=false; btn.textContent='Post Question';
+    };
+    document.getElementById('ans-form').onsubmit = async (e) => {
+        e.preventDefault();
+        const btn=document.getElementById('post-a-btn'); btn.disabled=true; btn.textContent='Submitting...';
+        await supabase.from('answers').insert({ user_id: currentUser.id, q_id: currentQId, answer_text: document.getElementById('ans-text').value, likes:0 });
+        ansM.classList.remove('active'); e.target.reset(); loadData(); btn.disabled=false; btn.textContent='Submit Answer';
+    };
+
+    document.getElementById('themeToggle').onclick = () => { document.body.classList.toggle('dark'); localStorage.setItem('theme', document.body.classList.contains('dark')?'dark':'light'); };
+    if(localStorage.getItem('theme')==='dark') document.body.classList.add('dark');
+    document.getElementById('logout-btn').onclick = async () => { await supabase.auth.signOut(); window.location.href='index.html'; };
+
+    init();
+  </script>
+</body>
+</html>

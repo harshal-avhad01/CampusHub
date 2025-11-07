@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CampusHub – TeamUp</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+
+
+
+:root { --primary:#5E35B1; --primary-grad:linear-gradient(135deg,#7E57C2,#5E35B1); --bg1:#f3e9fb; --bg2:#ede7f6; --card:#fff; --text:#333; --text-light:#555; --border:#e0e0e0; }
+body.dark { --bg1:#1b132d; --bg2:#2a1f47; --card:#2a1f47; --text:#f3e9fb; --text-light:#d1c4e9; --border:#4a3a6b; }
+body{font-family:'Poppins',sans-serif;background:linear-gradient(120deg,var(--bg1),var(--bg2));color:var(--text);margin:0;padding-top:70px;transition:0.4s;}
+
+header{height:70px;background:var(--primary-grad);color:#fff;display:flex;justify-content:space-between;align-items:center;padding:0 28px;position:fixed;top:0;width:100%;z-index:100;box-shadow:0 4px 20px rgba(0,0,0,0.2);}
+.nav-logo{font-size:1.5rem;font-weight:700;color:#fff;text-decoration:none;display:flex;align-items:center;gap:10px;}
+.nav-menu{display:flex;gap:15px;}
+.nav-link{text-decoration:none;color:#fff;opacity:0.9;padding:10px;transition:0.3s;}
+.nav-link:hover,.nav-link.active{opacity:1;border-bottom:3px solid #fff;}
+.nav-user{display:flex;align-items:center;gap:15px;}
+.user-pic{width:40px;height:40px;border-radius:50%;border:2px solid rgba(255,255,255,0.8);cursor:pointer;object-fit:cover;}
+
+main{max-width:1000px;margin:30px auto;padding:0 20px;}
+h1{text-align:center;color:var(--primary);margin-bottom:30px;}
+body.dark h1{color:#7E57C2;}
+.add-btn{display:block;margin:0 auto 30px;padding:12px 26px;background:var(--primary-grad);color:#fff;border:none;border-radius:50px;font-weight:600;font-size:1rem;cursor:pointer;transition:0.3s;}
+.add-btn:hover{transform:translateY(-3px);box-shadow:0 10px 20px rgba(94,53,177,0.3);}
+
+.team-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;}
+.card{background:var(--card);border-radius:16px;padding:24px;border:1px solid var(--border);border-left:5px solid var(--primary);box-shadow:0 4px 12px rgba(0,0,0,0.05);position:relative;transition:0.2s;}
+.card:hover{transform:translateY(-5px);box-shadow:0 8px 25px rgba(0,0,0,0.1);}
+.card h3{margin-top:0;color:var(--primary);padding-right:120px;}
+
+/* === ACTION BUTTONS === */
+.card-actions{position:absolute;top:24px;right:24px;display:flex;gap:8px;}
+.act-btn{width:34px;height:34px;border-radius:50%;border:1px solid var(--border);background:var(--card);color:var(--text-light);cursor:pointer;display:grid;place-items:center;transition:0.2s;font-size:15px;}
+.act-btn:hover{transform:scale(1.15);}
+.copy-btn:hover{color:var(--primary);border-color:var(--primary);}
+.share-btn:hover{color:#007bff;border-color:#007bff;}
+.del-btn:hover{background:#d9534f;color:#fff;border-color:#d9534f;}
+
+.meta{display:flex;align-items:center;gap:8px;color:var(--text-light);font-size:0.9rem;margin:8px 0;}
+.join-btn{margin-top:15px;background:rgba(94,53,177,0.1);color:var(--primary);border:1px solid var(--primary);padding:8px 16px;border-radius:8px;cursor:pointer;font-weight:600;transition:0.2s;width:100%;}
+.join-btn:hover{background:var(--primary-grad);color:#fff;}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(5px);display:none;place-items:center;z-index:1000;}
+.modal-overlay.active{display:grid;}
+.modal{background:var(--card);padding:30px;border-radius:20px;width:90%;max-width:450px;position:relative;border:1px solid var(--border);box-shadow:0 20px 50px rgba(0,0,0,0.3);}
+.close-modal{position:absolute;right:25px;top:25px;font-size:1.5rem;cursor:pointer;color:var(--text-light);}
+.form-group{margin-bottom:15px;}
+label{display:block;margin-bottom:8px;font-weight:600;}
+input,textarea{width:100%;padding:12px;border-radius:10px;border:1px solid var(--border);background:var(--bg1);color:var(--text);box-sizing:border-box;font-family:inherit;}
+.submit-btn{background:var(--primary-grad);color:#fff;width:100%;padding:12px;border:none;border-radius:50px;font-weight:600;cursor:pointer;}
+
+
+</style>
+</head>
+<body>
+
+  <div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+
+<header>
+  <a href="campushub.html" class="nav-logo"><i class="fa-solid fa-graduation-cap"></i> CampusHub</a>
+  <nav class="nav-menu">
+      <a href="campushub.html" class="nav-link">Home</a>
+      <a href="CampusLostdyanmic.html" class="nav-link">Lost & Found</a>
+      <a href="Teamup.html" class="nav-link active">Team Up</a>
+      <a href="event.html" class="nav-link">Events</a>
+      <a href="qa_with_answers_share_answer.html" class="nav-link">Q&A</a>
+      <a href="contact.html" class="nav-link">Contact</a>
+  </nav>
+  <div class="nav-user">
+    <button id="themeToggle" style="background:none;border:none;color:#fff;font-size:1.2rem;cursor:pointer;"><i class="fas fa-moon"></i></button>
+    <a href="CampusprofileDynamic.html"><img id="user-pic" class="user-pic" src="https://placehold.co/40/5E35B1/fff?text=U"></a>
+    <button id="logout-btn" style="background:none;border:none;color:#fff;font-size:1rem;cursor:pointer;"><i class="fa-solid fa-right-from-bracket"></i></button>
+  </div>
+</header>
+
+<main>
+  <h1><i class="fa-solid fa-users"></i> Team Up</h1>
+  <button id="add-btn" class="add-btn">+ Create Post</button>
+  <div id="team-grid" class="team-grid">
+      <p id="loader" style="text-align:center;grid-column:1/-1;">Loading posts...</p>
+  </div>
+</main>
+
+<div id="post-modal" class="modal-overlay"><div class="modal">
+  <span class="close-modal">&times;</span>
+  <h3 style="margin-top:0;color:var(--primary);">Create Team Post</h3>
+  <form id="post-form">
+      <div class="form-group"><label>Project Name</label><input id="p-title" required placeholder="e.g. Hackathon Team"></div>
+      <div class="form-group"><label>Role Needed</label><input id="p-role" required placeholder="e.g. Frontend Dev"></div>
+      <div class="form-group"><label>Description</label><textarea id="p-desc" rows="3" required placeholder="Project details..."></textarea></div>
+      <div class="form-group"><label>Contact Info</label><input id="p-contact" required placeholder="Email or Phone"></div>
+      <button type="submit" id="submit-btn" class="submit-btn">Post</button>
+  </form>
+</div></div>
+
+<script>
+const SUPABASE_URL = 'https://tuucgqbyegerndyviefw.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1dWNncWJ5ZWdlcm5keXZpZWZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE1NTc1NTksImV4cCI6MjA3NzEzMzU1OX0.fImUoHr86_5MdkDEWu8JXhjSaG2oxbq0IoGhZ6XeH-0';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let currentUser = null;
+
+async function init() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return window.location.href = 'index.html';
+    currentUser = session.user;
+    document.getElementById('user-pic').src = currentUser.user_metadata.profile_image || `https://placehold.co/40/5E35B1/fff?text=${(currentUser.user_metadata.fullname||'U')[0]}`;
+    loadPosts();
+}
+
+async function loadPosts() {
+    const loader = document.getElementById('loader');
+    const grid = document.getElementById('team-grid');
+    if(loader) loader.style.display = 'block';
+    if(grid) grid.innerHTML = '';
+
+    const { data: posts, error } = await supabase.from('team_up')
+        .select('*, users(user_name, user_avatar, email)')
+        .order('created_at', { ascending: false });
+
+    if (error) { console.error("Error:", error); if(grid) grid.innerHTML = `<p style="color:red;text-align:center;grid-column:1/-1;">Error loading posts.</p>`; return; }
+    if (!posts?.length) { if(grid) grid.innerHTML = '<p style="text-align:center;opacity:0.7;grid-column:1/-1;">No posts yet. Create one!</p>'; return; }
+
+    if(loader) loader.style.display = 'none';
+    posts.forEach(post => grid.appendChild(createCard(post)));
+}
+
+function createCard(post) {
+    let u = post.users; if (Array.isArray(u)) u = u[0];
+    const name = u?.user_name || u?.email?.split('@')[0] || 'Anonymous';
+    const isOwner = currentUser.id === post.user_id;
+    const dateStr = new Date(post.created_at).toLocaleDateString();
+
+    // === RICH SHARE TEXT RESTORED ===
+    const shareText = 
+`🚀 *CAMPUSHUB TEAM UP* 🚀
+
+🔥 *Project:* ${post.event_name}
+🎯 *Looking for:* ${post.role_needed}
+
+📝 *Details:*
+${post.description}
+
+👤 *Posted by:* ${name}
+📅 *Date:* ${dateStr}
+
+Interested? Connect with your Class CR for contact details!`;
+
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+        <div class="card-actions">
+             <button class="act-btn copy-btn" title="Copy Info"><i class="fas fa-copy"></i></button>
+             <button class="act-btn share-btn" title="Share"><i class="fas fa-share-nodes"></i></button>
+             ${isOwner ? `<button class="act-btn del-btn" title="Delete"><i class="fas fa-trash"></i></button>` : ''}
+        </div>
+        <h3>${post.event_name}</h3>
+        <div class="meta"><i class="fas fa-user-tag"></i> <strong>Role:</strong> ${post.role_needed}</div>
+        <p style="color:var(--text);margin:15px 0;line-height:1.5;">${post.description}</p>
+        <div class="meta"><i class="fas fa-user-circle"></i> Posted by ${name}</div>
+        <div class="meta" style="font-size:0.8rem;"><i class="far fa-clock"></i> ${dateStr}</div>
+        <button class="join-btn">
+            <i class="fas fa-envelope"></i> Show Contact Info
+        </button>
+    `;
+    
+    // Attach safe event listeners
+    card.querySelector('.copy-btn').onclick = () => { navigator.clipboard.writeText(shareText); alert('Post info copied!'); };
+    card.querySelector('.share-btn').onclick = () => { if(navigator.share) navigator.share({text:shareText}); else card.querySelector('.copy-btn').click(); };
+    if(isOwner) card.querySelector('.del-btn').onclick = () => deletePost(post.team_id);
+    card.querySelector('.join-btn').onclick = function() { this.textContent = post.contact_info; this.style.background='var(--primary-grad)'; this.style.color='#fff'; };
+
+    return card;
+}
+
+async function deletePost(id) {
+    if(confirm('Delete this post?')) { await supabase.from('team_up').delete().eq('team_id', id); loadPosts(); }
+}
+
+// UI & Forms
+const modal = document.getElementById('post-modal');
+document.getElementById('add-btn').onclick = () => modal.classList.add('active');
+document.querySelector('.close-modal').onclick = () => modal.classList.remove('active');
+document.getElementById('post-form').onsubmit = async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('submit-btn'); btn.disabled=true; btn.textContent='Posting...';
+    const { error } = await supabase.from('team_up').insert({
+        user_id: currentUser.id,
+        event_name: document.getElementById('p-title').value,
+        role_needed: document.getElementById('p-role').value,
+        description: document.getElementById('p-desc').value,
+        contact_info: document.getElementById('p-contact').value
+    });
+    if(error) alert('Error: '+error.message); else { modal.classList.remove('active'); e.target.reset(); loadPosts(); }
+    btn.disabled=false; btn.textContent='Post';
+};
+
+document.getElementById('themeToggle').onclick = () => { document.body.classList.toggle('dark'); localStorage.setItem('theme', document.body.classList.contains('dark')?'dark':'light'); };
+if(localStorage.getItem('theme')==='dark') document.body.classList.add('dark');
+document.getElementById('logout-btn').onclick = async () => { await supabase.auth.signOut(); window.location.href='index.html'; };
+
+init();
+</script>
+</body>
+</html>
