@@ -23,11 +23,12 @@
 @keyframes float2 { 0%,100%{transform:translateY(0)}50%{transform:translateY(-25px)} }
 
   
-:root { --primary:#5E35B1; --primary-grad:linear-gradient(135deg,#7E57C2,#5E35B1); --bg1:#f3e9fb; --bg2:#ede7f6; --card:#fff; --text:#333; --text-light:#555; --border:#e0e0e0; }
-body.dark { --bg1:#1b132d; --bg2:#2a1f47; --card:#2a1f47; --text:#f3e9fb; --text-light:#d1c4e9; --border:#4a3a6b; }
+:root { --primary:#5E35B1; --primary-grad:linear-gradient(135deg,#7E57C2,#5E35B1); --bg1:#f3e9fb; --bg2:#ede7f6; --card:#fff; --text:#333; --text-light:#555; --border:#e0e0e0; --badge-bg: rgba(94, 53, 177, 0.1); --badge-text: #5E35B1; }
+body.dark { --bg1:#1b132d; --bg2:#2a1f47; --card:#2a1f47; --text:#f3e9fb; --text-light:#d1c4e9; --border:#4a3a6b; --badge-bg: rgba(126, 87, 194, 0.2); --badge-text: #b39ddb; }
 body{font-family:'Poppins',sans-serif;background:linear-gradient(120deg,var(--bg1),var(--bg2));color:var(--text);margin:0;padding-top:70px;transition:0.4s;}
 
-header{height:70px;background:var(--primary-grad);color:#fff;display:flex;justify-content:space-between;align-items:center;padding:0 28px;position:fixed;top:0;width:100%;z-index:100;box-shadow:0 4px 20px rgba(0,0,0,0.2);}
+/* Added box-sizing: border-box to fix width overflow */
+header{height:70px;background:var(--primary-grad);color:#fff;display:flex;justify-content:space-between;align-items:center;padding:0 28px;position:fixed;top:0;width:100%;z-index:100;box-shadow:0 4px 20px rgba(0,0,0,0.2); box-sizing: border-box;}
 .nav-logo{font-size:1.5rem;font-weight:700;color:#fff;text-decoration:none;display:flex;align-items:center;gap:10px;}
 .nav-menu{display:flex;gap:15px;}
 .nav-link{text-decoration:none;color:#fff;opacity:0.9;padding:10px;transition:0.3s;}
@@ -38,13 +39,64 @@ header{height:70px;background:var(--primary-grad);color:#fff;display:flex;justif
 main{max-width:1000px;margin:30px auto;padding:0 20px;}
 h1{text-align:center;color:var(--primary);margin-bottom:30px;}
 body.dark h1{color:#7E57C2;}
-.add-btn{display:block;margin:0 auto 30px;padding:12px 26px;background:var(--primary-grad);color:#fff;border:none;border-radius:50px;font-weight:600;font-size:1rem;cursor:pointer;transition:0.3s;}
-.add-btn:hover{transform:translateY(-3px);box-shadow:0 10px 20px rgba(94,53,177,0.3);}
 
+/* === CTA Button (Header) === */
+.cta-button {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    padding: 8px 16px;
+    border-radius: 50px;
+    font-weight: 600;
+    font-family: 'Poppins', sans-serif;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    white-space: nowrap; /* Prevent text wrap */
+}
+.cta-button:hover {
+    background: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+/* === NEW: Filters & Search === */
+.filters-container {
+    display: flex; flex-wrap: wrap; gap: 15px; justify-content: center;
+    margin: 0 auto 30px; padding: 20px;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 50px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    max-width: 900px; align-items: center;
+}
+.search-wrapper { position: relative; flex-grow: 1; max-width: 400px; min-width: 250px; }
+.search-wrapper i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-light); }
+.search-input {
+    width: 100%; padding: 12px 12px 12px 40px; border-radius: 30px;
+    border: 1px solid var(--border); background: var(--bg1); color: var(--text);
+    font-family: inherit; font-size: 14px; box-sizing: border-box; transition: 0.3s;
+}
+.search-input:focus { outline: none; border-color: var(--primary); background: var(--card); }
+.filter-select {
+    padding: 12px 20px; border-radius: 30px;
+    border: 1px solid var(--border); background: var(--bg1); color: var(--text);
+    font-family: inherit; font-size: 14px; cursor: pointer; transition: 0.3s;
+}
+.filter-select:focus { outline: none; border-color: var(--primary); }
+
+/* Grid */
 .team-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;}
 .card{background:var(--card);border-radius:16px;padding:24px;border:1px solid var(--border);border-left:5px solid var(--primary);box-shadow:0 4px 12px rgba(0,0,0,0.05);position:relative;transition:0.2s;}
 .card:hover{transform:translateY(-5px);box-shadow:0 8px 25px rgba(0,0,0,0.1);}
-.card h3{margin-top:0;color:var(--primary);padding-right:120px;}
+.card h3{margin-top:0;color:var(--primary);padding-right:120px; margin-bottom: 5px;}
+
+.dept-badge {
+    display: inline-block; padding: 3px 10px; background: var(--badge-bg);
+    color: var(--badge-text); border-radius: 15px; font-size: 11px;
+    font-weight: 600; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px;
+}
 
 /* === ACTION BUTTONS === */
 .card-actions{position:absolute;top:24px;right:24px;display:flex;gap:8px;}
@@ -64,7 +116,7 @@ body.dark h1{color:#7E57C2;}
 .close-modal{position:absolute;right:25px;top:25px;font-size:1.5rem;cursor:pointer;color:var(--text-light);}
 .form-group{margin-bottom:15px;}
 label{display:block;margin-bottom:8px;font-weight:600;}
-input,textarea{width:100%;padding:12px;border-radius:10px;border:1px solid var(--border);background:var(--bg1);color:var(--text);box-sizing:border-box;font-family:inherit;}
+input,textarea,select{width:100%;padding:12px;border-radius:10px;border:1px solid var(--border);background:var(--bg1);color:var(--text);box-sizing:border-box;font-family:inherit;}
 .submit-btn{background:var(--primary-grad);color:#fff;width:100%;padding:12px;border:none;border-radius:50px;font-weight:600;cursor:pointer;}
 
 
@@ -86,6 +138,7 @@ input,textarea{width:100%;padding:12px;border-radius:10px;border:1px solid var(-
       <a href="contact.html" class="nav-link">Contact</a>
   </nav>
   <div class="nav-user">
+    <button id="add-btn" class="cta-button"><i class="fa-solid fa-plus"></i> Create Post</button>
     <button id="themeToggle" style="background:none;border:none;color:#fff;font-size:1.2rem;cursor:pointer;"><i class="fas fa-moon"></i></button>
     <a href="CampusprofileDynamic.html"><img id="user-pic" class="user-pic" src="https://placehold.co/40/5E35B1/fff?text=U"></a>
     <button id="logout-btn" style="background:none;border:none;color:#fff;font-size:1rem;cursor:pointer;"><i class="fa-solid fa-right-from-bracket"></i></button>
@@ -94,7 +147,24 @@ input,textarea{width:100%;padding:12px;border-radius:10px;border:1px solid var(-
 
 <main>
   <h1><i class="fa-solid fa-users"></i> Team Up</h1>
-  <button id="add-btn" class="add-btn">+ Create Post</button>
+  
+  <!-- === NEW: Search & Filters === -->
+  <section class="filters-container">
+      <div class="search-wrapper">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="searchInput" class="search-input" placeholder="Search by role, title, or dept...">
+      </div>
+      
+      <select id="deptFilter" class="filter-select">
+          <option value="all">Loading Depts...</option>
+      </select>
+
+      <select id="sortFilter" class="filter-select">
+          <option value="newest">Newest First</option>
+          <option value="oldest">Oldest First</option>
+      </select>
+  </section>
+
   <div id="team-grid" class="team-grid">
       <p id="loader" style="text-align:center;grid-column:1/-1;">Loading posts...</p>
   </div>
@@ -105,6 +175,15 @@ input,textarea{width:100%;padding:12px;border-radius:10px;border:1px solid var(-
   <h3 style="margin-top:0;color:var(--primary);">Create Team Post</h3>
   <form id="post-form">
       <div class="form-group"><label>Project Name</label><input id="p-title" required placeholder="e.g. Hackathon Team"></div>
+      
+      <!-- NEW: Department Select -->
+      <div class="form-group">
+          <label>Department</label>
+          <select id="p-dept" required>
+              <option value="" disabled selected>Loading...</option>
+          </select>
+      </div>
+
       <div class="form-group"><label>Role Needed</label><input id="p-role" required placeholder="e.g. Frontend Dev"></div>
       <div class="form-group"><label>Description</label><textarea id="p-desc" rows="3" required placeholder="Project details..."></textarea></div>
       <div class="form-group"><label>Contact Info</label><input id="p-contact" required placeholder="Email or Phone"></div>
@@ -116,44 +195,143 @@ input,textarea{width:100%;padding:12px;border-radius:10px;border:1px solid var(-
 const SUPABASE_URL = 'https://tuucgqbyegerndyviefw.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1dWNncWJ5ZWdlcm5keXZpZWZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE1NTc1NTksImV4cCI6MjA3NzEzMzU1OX0.fImUoHr86_5MdkDEWu8JXhjSaG2oxbq0IoGhZ6XeH-0';
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 let currentUser = null;
+let allPostsData = [];
+let departmentsData = [];
 
 async function init() {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return window.location.href = 'index.html';
     currentUser = session.user;
     document.getElementById('user-pic').src = currentUser.user_metadata.profile_image || `https://placehold.co/40/5E35B1/fff?text=${(currentUser.user_metadata.fullname||'U')[0]}`;
-    loadPosts();
+    
+    await loadDepartments();
+    await loadPosts();
 }
 
+// === LOAD DEPARTMENTS ===
+async function loadDepartments() {
+    const { data, error } = await supabase
+        .from('departments')
+        .select('dept_id, dept_name')
+        .order('dept_name', { ascending: true });
+
+    const filterSelect = document.getElementById('deptFilter');
+    const formSelect = document.getElementById('p-dept');
+
+    if (error) {
+        console.error("Error loading departments:", error);
+        filterSelect.innerHTML = '<option value="all">Error Loading</option>';
+        formSelect.innerHTML = '<option value="" disabled selected>Error Loading</option>';
+        return;
+    }
+
+    departmentsData = data || [];
+    
+    // Populate Filter
+    filterSelect.innerHTML = '<option value="all">All Departments</option>';
+    departmentsData.forEach(dept => {
+        const opt = document.createElement('option');
+        opt.value = dept.dept_id; 
+        opt.textContent = dept.dept_name;
+        filterSelect.appendChild(opt);
+    });
+
+    // Populate Add Form
+    formSelect.innerHTML = '<option value="" disabled selected>Select Department</option>';
+    departmentsData.forEach(dept => {
+        const opt = document.createElement('option');
+        opt.value = dept.dept_id; 
+        opt.textContent = dept.dept_name;
+        formSelect.appendChild(opt);
+    });
+}
+
+// === LOAD POSTS ===
 async function loadPosts() {
     const loader = document.getElementById('loader');
     const grid = document.getElementById('team-grid');
     if(loader) loader.style.display = 'block';
     if(grid) grid.innerHTML = '';
 
+    // Fetch with joined Departments
     const { data: posts, error } = await supabase.from('team_up')
-        .select('*, users(user_name, user_avatar, email)')
+        .select('*, users(user_name, user_avatar, email), departments(dept_name)')
         .order('created_at', { ascending: false });
 
-    if (error) { console.error("Error:", error); if(grid) grid.innerHTML = `<p style="color:red;text-align:center;grid-column:1/-1;">Error loading posts.</p>`; return; }
-    if (!posts?.length) { if(grid) grid.innerHTML = '<p style="text-align:center;opacity:0.7;grid-column:1/-1;">No posts yet. Create one!</p>'; return; }
+    if (error) { 
+        console.error("Error:", error); 
+        if(grid) grid.innerHTML = `<p style="color:red;text-align:center;grid-column:1/-1;">Error loading posts.</p>`; 
+        return; 
+    }
 
     if(loader) loader.style.display = 'none';
-    posts.forEach(post => grid.appendChild(createCard(post)));
+    allPostsData = posts || [];
+    
+    if (allPostsData.length === 0) {
+        grid.innerHTML = '<p style="text-align:center;opacity:0.7;grid-column:1/-1;">No posts yet. Create one!</p>';
+    } else {
+        applyFilters(); // Initial render
+    }
 }
+
+// === FILTER LOGIC ===
+function applyFilters() {
+    const grid = document.getElementById('team-grid');
+    grid.innerHTML = '';
+
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const selectedDeptId = document.getElementById('deptFilter').value;
+    const sortOrder = document.getElementById('sortFilter').value;
+
+    let filtered = allPostsData.filter(post => {
+        const deptName = post.departments ? post.departments.dept_name : 'General';
+        
+        const matchSearch = 
+            (post.event_name && post.event_name.toLowerCase().includes(searchTerm)) ||
+            (post.role_needed && post.role_needed.toLowerCase().includes(searchTerm)) ||
+            (post.description && post.description.toLowerCase().includes(searchTerm)) ||
+            (deptName.toLowerCase().includes(searchTerm));
+
+        const matchDept = selectedDeptId === 'all' || (post.dept_id == selectedDeptId);
+
+        return matchSearch && matchDept;
+    });
+
+    // Sort
+    filtered.sort((a, b) => {
+        const dateA = new Date(a.created_at);
+        const dateB = new Date(b.created_at);
+        return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
+    });
+
+    if (filtered.length === 0) {
+        grid.innerHTML = '<p style="text-align:center;opacity:0.7;grid-column:1/-1;">No matching posts found.</p>';
+    } else {
+        filtered.forEach(post => grid.appendChild(createCard(post)));
+    }
+}
+
+// Listeners
+document.getElementById('searchInput').addEventListener('input', applyFilters);
+document.getElementById('deptFilter').addEventListener('change', applyFilters);
+document.getElementById('sortFilter').addEventListener('change', applyFilters);
+
 
 function createCard(post) {
     let u = post.users; if (Array.isArray(u)) u = u[0];
     const name = u?.user_name || u?.email?.split('@')[0] || 'Anonymous';
     const isOwner = currentUser.id === post.user_id;
     const dateStr = new Date(post.created_at).toLocaleDateString();
+    
+    const deptName = post.departments ? post.departments.dept_name : 'General';
 
-    // === RICH SHARE TEXT RESTORED ===
+    // === RICH SHARE TEXT ===
     const shareText = 
 `🚀 *CAMPUSHUB TEAM UP* 🚀
 
-🔥 *Project:* ${post.event_name}
+🔥 *Project:* [${deptName}] ${post.event_name}
 🎯 *Looking for:* ${post.role_needed}
 
 📝 *Details:*
@@ -172,6 +350,7 @@ Interested? Connect with your Class CR for contact details!`;
              <button class="act-btn share-btn" title="Share"><i class="fas fa-share-nodes"></i></button>
              ${isOwner ? `<button class="act-btn del-btn" title="Delete"><i class="fas fa-trash"></i></button>` : ''}
         </div>
+        <span class="dept-badge">${deptName}</span>
         <h3>${post.event_name}</h3>
         <div class="meta"><i class="fas fa-user-tag"></i> <strong>Role:</strong> ${post.role_needed}</div>
         <p style="color:var(--text);margin:15px 0;line-height:1.5;">${post.description}</p>
@@ -199,16 +378,23 @@ async function deletePost(id) {
 const modal = document.getElementById('post-modal');
 document.getElementById('add-btn').onclick = () => modal.classList.add('active');
 document.querySelector('.close-modal').onclick = () => modal.classList.remove('active');
+
 document.getElementById('post-form').onsubmit = async (e) => {
     e.preventDefault();
     const btn = document.getElementById('submit-btn'); btn.disabled=true; btn.textContent='Posting...';
+    
+    const deptId = document.getElementById('p-dept').value;
+    if (!deptId) { alert("Please select a department"); btn.disabled=false; btn.textContent='Post'; return; }
+
     const { error } = await supabase.from('team_up').insert({
         user_id: currentUser.id,
         event_name: document.getElementById('p-title').value,
+        dept_id: deptId, // Insert FK
         role_needed: document.getElementById('p-role').value,
         description: document.getElementById('p-desc').value,
         contact_info: document.getElementById('p-contact').value
     });
+    
     if(error) alert('Error: '+error.message); else { modal.classList.remove('active'); e.target.reset(); loadPosts(); }
     btn.disabled=false; btn.textContent='Post';
 };
