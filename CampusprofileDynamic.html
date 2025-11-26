@@ -190,13 +190,9 @@ input:disabled { opacity: 0.7; cursor: not-allowed; }
                     <label>Department</label>
                     <div class="input-wrapper">
                         <i class="fas fa-building-columns"></i>
+                        <!-- Dynamically populated from 'departments' table -->
                         <select id="dept" required>
-                            <option value="" disabled selected>Select Department</option>
-                            <option value="Computer Science">Computer Science</option>
-                            <option value="Information Tech">Information Tech</option>
-                            <option value="Electronics">Electronics</option>
-                            <option value="Mechanical">Mechanical</option>
-                            <option value="Civil">Civil</option>
+                            <option value="" disabled selected>Loading departments...</option>
                         </select>
                     </div>
                 </div>
@@ -257,28 +253,28 @@ input:disabled { opacity: 0.7; cursor: not-allowed; }
                     <label>LinkedIn</label>
                     <div class="input-wrapper">
                         <i class="fa-brands fa-linkedin"></i>
-                        <input type="url" id="social-linkedin" placeholder="https://linkedin.com/in/...">
+                        <input type="url" id="social-linkedin" data-platform="LinkedIn" placeholder="https://linkedin.com/in/...">
                     </div>
                 </div>
                 <div class="form-group">
                     <label>GitHub</label>
                     <div class="input-wrapper">
                         <i class="fa-brands fa-github"></i>
-                        <input type="url" id="social-github" placeholder="https://github.com/...">
+                        <input type="url" id="social-github" data-platform="GitHub" placeholder="https://github.com/...">
                     </div>
                 </div>
                 <div class="form-group">
                     <label>Instagram</label>
                     <div class="input-wrapper">
                         <i class="fa-brands fa-instagram"></i>
-                        <input type="url" id="social-instagram" placeholder="https://instagram.com/...">
+                        <input type="url" id="social-instagram" data-platform="Instagram" placeholder="https://instagram.com/...">
                     </div>
                 </div>
                 <div class="form-group">
                     <label>Portfolio / Website</label>
                     <div class="input-wrapper">
                         <i class="fas fa-globe"></i>
-                        <input type="url" id="social-website" placeholder="https://yourportfolio.com">
+                        <input type="url" id="social-website" data-platform="Website" placeholder="https://yourportfolio.com">
                     </div>
                 </div>
             </div>
@@ -298,62 +294,103 @@ input:disabled { opacity: 0.7; cursor: not-allowed; }
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     let currentUser = null;
 
+    // UUID Generator Polyfill (for environments where crypto.randomUUID is restricted)
+    function generateUUID() {
+        if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+            return crypto.randomUUID();
+        }
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+            var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
+    }
+
     // === 1. INIT & LOAD ===
     async function init() {
+        // Auth check
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) return window.location.href = 'index.html';
         currentUser = session.user;
-        loadProfileData();
+        
+        // Load dependencies and profile
+        await loadDepartments();
+        await loadProfileData();
+    }
+
+    // Load Departments from 'departments' table for FK relationship
+    async function loadDepartments() {
+        const { data: depts, error } = await supabase.from('departments').select('*').order('dept_name');
+        const select = document.getElementById('dept');
+        select.innerHTML = '<option value="" disabled selected>Select Department</option>';
+        
+        if (depts && depts.length > 0) {
+            depts.forEach(d => {
+                const opt = document.createElement('option');
+                opt.value = d.dept_id; // Using bigint ID
+                opt.textContent = d.dept_name;
+                select.appendChild(opt);
+            });
+        } else {
+            // Fallback if table is empty
+            const fallbacks = ["Computer Science", "Information Tech", "Electronics", "Mechanical", "Civil"];
+            fallbacks.forEach((d, i) => {
+                const opt = document.createElement('option');
+                opt.value = i + 1; 
+                opt.textContent = d;
+                select.appendChild(opt);
+            });
+        }
     }
 
     async function loadProfileData() {
-        // Load from Metadata (Fastest)
-        const meta = currentUser.user_metadata || {};
         document.getElementById('email').value = currentUser.email;
-        document.getElementById('fullname').value = meta.fullname || '';
-        document.getElementById('dept').value = meta.dept || '';
-        document.getElementById('year').value = meta.year || '';
+
+        // 1. Fetch from 'users' table (Core Data)
+        const { data: userData } = await supabase.from('users').select('*').eq('id', currentUser.id).single();
         
-        // Profile Pic Logic
-        const initial = (meta.fullname || currentUser.email || 'U')[0].toUpperCase();
-        const avatarUrl = meta.profile_image || `https://placehold.co/150/5E35B1/fff?text=${initial}`;
-        document.getElementById('profile-preview').src = avatarUrl;
+        if (userData) {
+            document.getElementById('fullname').value = userData.user_name || '';
+            document.getElementById('year').value = userData.year || '';
+            if (userData.dep_id) document.getElementById('dept').value = userData.dep_id;
+            
+            const initial = (userData.user_name || currentUser.email || 'U')[0].toUpperCase();
+            const avatarUrl = userData.user_avatar || `https://placehold.co/150/5E35B1/fff?text=${initial}`;
+            document.getElementById('profile-preview').src = avatarUrl;
+        }
 
-        // Load Bio, Interests & Socials from Database
-        // Assumption: 'user_profiles' table has columns: bio (text), interests (jsonb/array), socials (jsonb)
-        const { data } = await supabase.from('user_profiles').select('*').eq('user_id', currentUser.id).single();
-        
-        if (data) {
-            // Bio
-            if (data.bio) document.getElementById('bio').value = data.bio;
+        // 2. Fetch from 'user_profiles' table (Bio)
+        const { data: profileData } = await supabase.from('user_profiles').select('bio').eq('user_id', currentUser.id).maybeSingle();
+        if (profileData && profileData.bio) {
+            document.getElementById('bio').value = profileData.bio;
+        }
 
-            // Interests Logic
-            if (data.interests) {
-                // If stored as array ["Coding", "Music"]
-                const savedInterests = Array.isArray(data.interests) ? data.interests : JSON.parse(data.interests || '[]');
-                
-                // Check chips
-                document.querySelectorAll('.chip-checkbox').forEach(chk => {
-                    if (savedInterests.includes(chk.value)) {
-                        chk.checked = true;
-                    }
-                });
+        // 3. Fetch from 'user_interests' table
+        const { data: interests } = await supabase.from('user_interests').select('interest_name').eq('user_id', currentUser.id);
+        if (interests) {
+            const interestNames = interests.map(i => i.interest_name);
+            
+            // Check chips
+            document.querySelectorAll('.chip-checkbox').forEach(chk => {
+                if (interestNames.includes(chk.value)) {
+                    chk.checked = true;
+                }
+            });
 
-                // Add non-chip interests to text box
-                const standardValues = Array.from(document.querySelectorAll('.chip-checkbox')).map(c => c.value);
-                const otherValues = savedInterests.filter(i => !standardValues.includes(i));
-                document.getElementById('other-interests').value = otherValues.join(', ');
-            }
+            // Add non-chip interests to text box
+            const standardValues = Array.from(document.querySelectorAll('.chip-checkbox')).map(c => c.value);
+            const otherValues = interestNames.filter(i => !standardValues.includes(i));
+            document.getElementById('other-interests').value = otherValues.join(', ');
+        }
 
-            // Socials Logic
-            if (data.socials) {
-                // If stored as JSON { "linkedin": "...", "github": "..." }
-                const s = typeof data.socials === 'object' ? data.socials : JSON.parse(data.socials);
-                document.getElementById('social-linkedin').value = s.linkedin || '';
-                document.getElementById('social-github').value = s.github || '';
-                document.getElementById('social-instagram').value = s.instagram || '';
-                document.getElementById('social-website').value = s.website || '';
-            }
+        // 4. Fetch from 'user_social_link' table
+        const { data: socials } = await supabase.from('user_social_link').select('*').eq('user_id', currentUser.id);
+        if (socials) {
+            socials.forEach(link => {
+                if(link.platform_name === 'LinkedIn') document.getElementById('social-linkedin').value = link.url;
+                if(link.platform_name === 'GitHub') document.getElementById('social-github').value = link.url;
+                if(link.platform_name === 'Instagram') document.getElementById('social-instagram').value = link.url;
+                if(link.platform_name === 'Website') document.getElementById('social-website').value = link.url;
+            });
         }
     }
 
@@ -372,10 +409,11 @@ input:disabled { opacity: 0.7; cursor: not-allowed; }
         btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
 
         try {
-            let avatarUrl = currentUser.user_metadata.profile_image;
+            // A. Handle Image Upload
+            let avatarUrl = document.getElementById('profile-preview').src;
             const picFile = document.getElementById('pic-input').files[0];
-
-            // 3a. Upload new avatar if selected
+            
+            // Only upload if a NEW file is selected (src is blob:...)
             if (picFile) {
                 const path = `avatars/${currentUser.id}/${Date.now()}.png`;
                 const { error: upErr } = await supabase.storage.from('avatars').upload(path, picFile, { upsert: true });
@@ -384,45 +422,91 @@ input:disabled { opacity: 0.7; cursor: not-allowed; }
                 avatarUrl = publicUrl;
             }
 
-            // 3b. Update Auth Metadata (Core Info)
-            const { error: authErr } = await supabase.auth.updateUser({
-                data: {
-                    fullname: document.getElementById('fullname').value,
-                    dept: document.getElementById('dept').value,
-                    year: document.getElementById('year').value,
-                    profile_image: avatarUrl
-                }
-            });
-            if (authErr) throw authErr;
+            // B. Update 'users' table (Core Info)
+            const userName = document.getElementById('fullname').value;
+            const deptId = document.getElementById('dept').value;
+            const year = document.getElementById('year').value;
 
-            // 3c. Gather Complex Data (Interests & Socials)
+            const { error: userErr } = await supabase.from('users').upsert({
+                id: currentUser.id,
+                user_name: userName,
+                email: currentUser.email,
+                user_avatar: avatarUrl,
+                dep_id: deptId,
+                year: year
+            });
+            if (userErr) throw userErr;
+
+            // C. Update 'user_profiles' table (Bio)
+            // FIX: 'upsert' with 'onConflict: user_id' fails if user_id is not a unique constraint.
+            // SOLUTION: Check if exists, then Update or Insert.
+            const bio = document.getElementById('bio').value;
             
-            // Gather Interests
+            const { data: existingProfile } = await supabase.from('user_profiles')
+                .select('profile_id')
+                .eq('user_id', currentUser.id)
+                .maybeSingle();
+
+            if (existingProfile) {
+                const { error: updateErr } = await supabase.from('user_profiles')
+                    .update({ bio: bio, profile_image: avatarUrl })
+                    .eq('user_id', currentUser.id);
+                if (updateErr) throw updateErr;
+            } else {
+                const { error: insertErr } = await supabase.from('user_profiles')
+                    .insert({ user_id: currentUser.id, bio: bio, profile_image: avatarUrl });
+                if (insertErr) throw insertErr;
+            }
+
+            // D. Update 'user_interests' (Delete All -> Insert New)
+            await supabase.from('user_interests').delete().eq('user_id', currentUser.id);
+            
             const selectedChips = Array.from(document.querySelectorAll('.chip-checkbox:checked')).map(c => c.value);
             const otherText = document.getElementById('other-interests').value.split(',').map(s => s.trim()).filter(s => s);
-            const finalInterests = [...new Set([...selectedChips, ...otherText])]; // Remove duplicates
+            const finalInterests = [...new Set([...selectedChips, ...otherText])];
 
-            // Gather Socials
-            const socialData = {
-                linkedin: document.getElementById('social-linkedin').value,
-                github: document.getElementById('social-github').value,
-                instagram: document.getElementById('social-instagram').value,
-                website: document.getElementById('social-website').value
-            };
+            if (finalInterests.length > 0) {
+                const interestInserts = finalInterests.map(i => ({
+                    interest_id: generateUUID(), // Use Helper Function
+                    user_id: currentUser.id,
+                    interest_name: i
+                }));
+                const { error: intErr } = await supabase.from('user_interests').insert(interestInserts);
+                if (intErr) throw intErr;
+            }
 
-            // 3d. Update DB
-            await supabase.from('user_profiles').upsert({
-                user_id: currentUser.id,
-                bio: document.getElementById('bio').value,
-                interests: finalInterests,  // Stored as Array (Postgres) or JSON
-                socials: socialData         // Stored as JSON
+            // E. Update 'user_social_link' (Delete All -> Insert New)
+            await supabase.from('user_social_link').delete().eq('user_id', currentUser.id);
+
+            const socialInputs = [
+                { id: 'social-linkedin', platform: 'LinkedIn' },
+                { id: 'social-github', platform: 'GitHub' },
+                { id: 'social-instagram', platform: 'Instagram' },
+                { id: 'social-website', platform: 'Website' }
+            ];
+
+            const socialInserts = [];
+            socialInputs.forEach(item => {
+                const url = document.getElementById(item.id).value.trim();
+                if (url) {
+                    socialInserts.push({
+                        user_id: currentUser.id,
+                        platform_name: item.platform,
+                        url: url
+                    });
+                }
             });
+
+            if (socialInserts.length > 0) {
+                const { error: socErr } = await supabase.from('user_social_link').insert(socialInserts);
+                if (socErr) throw socErr;
+            }
 
             showToast('✅ Profile updated successfully!', 'success');
 
         } catch (err) {
-            console.error(err);
-            showToast('❌ Error saving profile.', 'error');
+            console.error("Save Error:", err);
+            showToast('❌ Error saving profile: ' + err.message, 'error');
         } finally {
             btn.disabled = false; btn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
         }
@@ -441,6 +525,19 @@ input:disabled { opacity: 0.7; cursor: not-allowed; }
     };
     if(localStorage.getItem('theme')==='dark') document.body.classList.add('dark');
     document.getElementById('logout-btn').onclick = async () => { await supabase.auth.signOut(); window.location.href = 'index.html'; };
+
+const themeBtn = document.getElementById('themeToggle');
+    const body = document.body;
+    if (localStorage.getItem("theme") === "dark") {
+      body.classList.add("dark");
+      themeBtn.innerHTML = '<i class="fa-solid fa-sun"></i>';
+    }
+    themeBtn.onclick = () => {
+      body.classList.toggle("dark");
+      const isDark = body.classList.contains("dark");
+      themeBtn.innerHTML = isDark ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
+      localStorage.setItem("theme", isDark ? 'dark' : 'light');
+    };
 
     init();
 </script>
