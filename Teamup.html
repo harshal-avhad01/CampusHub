@@ -194,7 +194,7 @@ input,textarea,select{width:100%;padding:12px;border-radius:10px;border:1px soli
 <script>
 const SUPABASE_URL = 'https://tuucgqbyegerndyviefw.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1dWNncWJ5ZWdlcm5keXZpZWZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE1NTc1NTksImV4cCI6MjA3NzEzMzU1OX0.fImUoHr86_5MdkDEWu8JXhjSaG2oxbq0IoGhZ6XeH-0';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+ supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let currentUser = null;
 let allPostsData = [];
@@ -421,4 +421,5 @@ init();
 </body>
 
 </html>
+
 
